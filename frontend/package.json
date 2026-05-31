@@ -1,0 +1,23 @@
+{
+  "name": "sany-platform-frontend",
+  "version": "1.0.0",
+  "description": "三一工业智能服务平台 - 前端",
+  "private": true,
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint"
+  },
+  "dependencies": {
+    "axios": "^0.27.2",
+    "element-ui": "^2.15.14",
+    "vue": "^2.7.14",
+    "vue-router": "^3.6.5"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^5.0.8",
+    "@vue/cli-plugin-router": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "vue-template-compiler": "^2.7.14"
+  }
+}

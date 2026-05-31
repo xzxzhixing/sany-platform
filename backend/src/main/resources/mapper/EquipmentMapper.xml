@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.EquipmentMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.Equipment">
+        <id column="id" property="id"/>
+        <result column="equipment_code" property="equipmentCode"/>
+        <result column="equipment_name" property="equipmentName"/>
+        <result column="equipment_model" property="equipmentModel"/>
+        <result column="serial_number" property="serialNumber"/>
+        <result column="category" property="category"/>
+        <result column="customer_id" property="customerId"/>
+        <result column="install_address" property="installAddress"/>
+        <result column="purchase_date" property="purchaseDate"/>
+        <result column="warranty_start" property="warrantyStart"/>
+        <result column="warranty_end" property="warrantyEnd"/>
+        <result column="maintenance_cycle" property="maintenanceCycle"/>
+        <result column="maintenance_hour" property="maintenanceHour"/>
+        <result column="status" property="status"/>
+        <result column="deleted" property="deleted"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, equipment_code, equipment_name, equipment_model, serial_number, category,
+        customer_id, install_address, purchase_date, warranty_start, warranty_end,
+        maintenance_cycle, maintenance_hour, status, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM tbl_equipment
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM tbl_equipment
+        WHERE equipment_code = #{equipmentCode} AND deleted = 0
+    </select>
+</mapper>

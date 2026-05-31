@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.WorkOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.WorkOrder">
+        <id column="id" property="id" />
+        <result column="order_no" property="orderNo" />
+        <result column="order_type" property="orderType" />
+        <result column="order_source" property="orderSource" />
+        <result column="customer_id" property="customerId" />
+        <result column="equipment_id" property="equipmentId" />
+        <result column="reporter_name" property="reporterName" />
+        <result column="reporter_phone" property="reporterPhone" />
+        <result column="fault_description" property="faultDescription" />
+        <result column="fault_level" property="faultLevel" />
+        <result column="fault_category" property="faultCategory" />
+        <result column="assignee_id" property="assigneeId" />
+        <result column="assign_time" property="assignTime" />
+        <result column="accept_time" property="acceptTime" />
+        <result column="arrive_time" property="arriveTime" />
+        <result column="finish_time" property="finishTime" />
+        <result column="confirm_time" property="confirmTime" />
+        <result column="order_status" property="orderStatus" />
+        <result column="handling_detail" property="handlingDetail" />
+        <result column="handling_result" property="handlingResult" />
+        <result column="charge_amount" property="chargeAmount" />
+        <result column="is_chargeable" property="isChargeable" />
+        <result column="customer_sign" property="customerSign" />
+        <result column="rating" property="rating" />
+        <result column="rating_remark" property="ratingRemark" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <resultMap id="VOResultMap" type="com.sany.platform.model.vo.WorkOrderVO">
+        <id column="id" property="id" />
+        <result column="order_no" property="orderNo" />
+        <result column="order_type" property="orderType" />
+        <result column="order_type_name" property="orderTypeName" />
+        <result column="order_status" property="orderStatus" />
+        <result column="order_status_name" property="orderStatusName" />
+        <result column="equipment_code" property="equipmentCode" />
+        <result column="equipment_name" property="equipmentName" />
+        <result column="customer_name" property="customerName" />
+        <result column="reporter_name" property="reporterName" />
+        <result column="reporter_phone" property="reporterPhone" />
+        <result column="fault_description" property="faultDescription" />
+        <result column="fault_level" property="faultLevel" />
+        <result column="fault_level_name" property="faultLevelName" />
+        <result column="assignee_name" property="assigneeName" />
+        <result column="assign_time" property="assignTime" />
+        <result column="accept_time" property="acceptTime" />
+        <result column="arrive_time" property="arriveTime" />
+        <result column="finish_time" property="finishTime" />
+        <result column="handling_detail" property="handlingDetail" />
+        <result column="rating" property="rating" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, order_no, order_type, order_source, customer_id, equipment_id,
+        reporter_name, reporter_phone, fault_description, fault_level, fault_category,
+        assignee_id, assign_time, accept_time, arrive_time, finish_time, confirm_time,
+        order_status, handling_detail, handling_result, charge_amount, is_chargeable,
+        customer_sign, rating, rating_remark, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_work_order
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectVOById" resultMap="VOResultMap">
+        SELECT wo.id, wo.order_no, wo.order_type,
+               CASE wo.order_type WHEN 1 THEN '报修' WHEN 2 THEN '保养'
+                                  WHEN 3 THEN '安装调试' WHEN 4 THEN '巡检'
+                                  ELSE '其他' END AS order_type_name,
+               wo.order_status,
+               CASE wo.order_status WHEN 0 THEN '待派单' WHEN 1 THEN '待接单'
+                                     WHEN 2 THEN '处理中' WHEN 3 THEN '待验收'
+                                     WHEN 4 THEN '已完成' WHEN 5 THEN '已关闭'
+                                     WHEN 6 THEN '已取消' ELSE '未知' END AS order_status_name,
+               eq.equipment_code, eq.equipment_name, cus.customer_name,
+               wo.reporter_name, wo.reporter_phone, wo.fault_description, wo.fault_level,
+               CASE wo.fault_level WHEN 1 THEN '紧急' WHEN 2 THEN '高'
+                                   WHEN 3 THEN '中' WHEN 4 THEN '低'
+                                   ELSE '未知' END AS fault_level_name,
+               us.real_name AS assignee_name,
+               wo.assign_time, wo.accept_time, wo.arrive_time, wo.finish_time,
+               wo.handling_detail, wo.rating, wo.create_time
+        FROM tbl_work_order wo
+        LEFT JOIN tbl_equipment eq ON wo.equipment_id = eq.id AND eq.deleted = 0
+        LEFT JOIN tbl_customer cus ON wo.customer_id = cus.id AND cus.deleted = 0
+        LEFT JOIN tbl_sys_user us ON wo.assignee_id = us.id AND us.deleted = 0
+        WHERE wo.id = #{id} AND wo.deleted = 0
+    </select>
+
+    <select id="selectVOList" resultMap="VOResultMap">
+        SELECT wo.id, wo.order_no, wo.order_type,
+               CASE wo.order_type WHEN 1 THEN '报修' WHEN 2 THEN '保养'
+                                  WHEN 3 THEN '安装调试' WHEN 4 THEN '巡检'
+                                  ELSE '其他' END AS order_type_name,
+               wo.order_status,
+               CASE wo.order_status WHEN 0 THEN '待派单' WHEN 1 THEN '待接单'
+                                     WHEN 2 THEN '处理中' WHEN 3 THEN '待验收'
+                                     WHEN 4 THEN '已完成' WHEN 5 THEN '已关闭'
+                                     WHEN 6 THEN '已取消' ELSE '未知' END AS order_status_name,
+               eq.equipment_code, eq.equipment_name, cus.customer_name,
+               wo.reporter_name, wo.reporter_phone, wo.fault_description, wo.fault_level,
+               CASE wo.fault_level WHEN 1 THEN '紧急' WHEN 2 THEN '高'
+                                   WHEN 3 THEN '中' WHEN 4 THEN '低'
+                                   ELSE '未知' END AS fault_level_name,
+               us.real_name AS assignee_name,
+               wo.assign_time, wo.accept_time, wo.arrive_time, wo.finish_time,
+               wo.handling_detail, wo.rating, wo.create_time
+        FROM tbl_work_order wo
+        LEFT JOIN tbl_equipment eq ON wo.equipment_id = eq.id AND eq.deleted = 0
+        LEFT JOIN tbl_customer cus ON wo.customer_id = cus.id AND cus.deleted = 0
+        LEFT JOIN tbl_sys_user us ON wo.assignee_id = us.id AND us.deleted = 0
+        <where>
+            wo.deleted = 0
+            <if test="orderNo != null and orderNo != ''">
+                AND wo.order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+            <if test="equipmentCode != null and equipmentCode != ''">
+                AND eq.equipment_code LIKE CONCAT('%', #{equipmentCode}, '%')
+            </if>
+            <if test="orderStatus != null">
+                AND wo.order_status = #{orderStatus}
+            </if>
+            <if test="customerId != null">
+                AND wo.customer_id = #{customerId}
+            </if>
+            <if test="assigneeId != null">
+                AND wo.assignee_id = #{assigneeId}
+            </if>
+            <if test="orderType != null">
+                AND wo.order_type = #{orderType}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND wo.create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND wo.create_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY wo.create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_work_order wo
+        LEFT JOIN tbl_equipment eq ON wo.equipment_id = eq.id AND eq.deleted = 0
+        <where>
+            wo.deleted = 0
+            <if test="orderNo != null and orderNo != ''">
+                AND wo.order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+            <if test="equipmentCode != null and equipmentCode != ''">
+                AND eq.equipment_code LIKE CONCAT('%', #{equipmentCode}, '%')
+            </if>
+            <if test="orderStatus != null">
+                AND wo.order_status = #{orderStatus}
+            </if>
+            <if test="customerId != null">
+                AND wo.customer_id = #{customerId}
+            </if>
+            <if test="assigneeId != null">
+                AND wo.assignee_id = #{assigneeId}
+            </if>
+            <if test="orderType != null">
+                AND wo.order_type = #{orderType}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND wo.create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND wo.create_time &lt;= #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_work_order (
+            order_no, order_type, order_source, customer_id, equipment_id,
+            reporter_name, reporter_phone, fault_description, fault_level, fault_category,
+            assignee_id, assign_time, order_status, deleted, create_time, update_time
+        ) VALUES (
+            #{orderNo}, #{orderType}, #{orderSource}, #{customerId}, #{equipmentId},
+            #{reporterName}, #{reporterPhone}, #{faultDescription}, #{faultLevel}, #{faultCategory},
+            #{assigneeId}, #{assignTime}, #{orderStatus}, 0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_work_order
+        <set>
+            update_time = NOW(),
+            <if test="reporterName != null">reporter_name = #{reporterName},</if>
+            <if test="reporterPhone != null">reporter_phone = #{reporterPhone},</if>
+            <if test="faultDescription != null">fault_description = #{faultDescription},</if>
+            <if test="faultLevel != null">fault_level = #{faultLevel},</if>
+            <if test="faultCategory != null">fault_category = #{faultCategory},</if>
+            <if test="assigneeId != null">assignee_id = #{assigneeId},</if>
+            <if test="orderStatus != null">order_status = #{orderStatus},</if>
+            <if test="handlingDetail != null">handling_detail = #{handlingDetail},</if>
+            <if test="handlingResult != null">handling_result = #{handlingResult},</if>
+            <if test="rating != null">rating = #{rating},</if>
+            <if test="ratingRemark != null">rating_remark = #{ratingRemark},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateStatus">
+        UPDATE tbl_work_order
+        SET order_status = #{newStatus}, update_time = NOW()
+            <if test="newStatus == 1">, accept_time = NOW()</if>
+            <if test="newStatus == 2">, arrive_time = NOW()</if>
+            <if test="newStatus == 4">, finish_time = NOW()</if>
+        WHERE id = #{id} AND order_status = #{oldStatus} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_work_order SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="selectMaxOrderNoByDate" resultType="string">
+        SELECT order_no FROM tbl_work_order
+        WHERE order_no LIKE CONCAT(#{datePrefix}, '%')
+        ORDER BY order_no DESC LIMIT 1
+    </select>
+</mapper>

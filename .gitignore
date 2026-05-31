@@ -1,0 +1,40 @@
+# === Maven ===
+backend/target/
+*.class
+*.jar
+*.war
+
+# === Node / Frontend ===
+node_modules/
+frontend/dist/
+frontend/npm-debug.log*
+frontend/yarn-error.log*
+
+# === IDE ===
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# === Logs ===
+*.log
+logs/
+
+# === Env ===
+.env
+.env.local
+*.local
