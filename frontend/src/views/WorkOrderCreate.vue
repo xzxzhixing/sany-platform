@@ -7,9 +7,9 @@
       </div>
       <div class="page-body">
         <el-form :model="form" :rules="rules" ref="formRef" label-width="110px" size="medium" class="create-form">
-          <el-form-item label="客户名称" prop="customerName">
-            <el-select v-model="form.customerName" filterable placeholder="搜索客户" style="width:100%">
-              <el-option v-for="c in customerOptions" :key="c.id" :label="c.customerName" :value="c.customerName" />
+          <el-form-item label="客户名称" prop="customerId">
+            <el-select v-model="form.customerId" filterable placeholder="搜索客户" style="width:100%">
+              <el-option v-for="c in customerOptions" :key="c.id" :label="c.customerName" :value="c.id" />
             </el-select>
           </el-form-item>
           <el-form-item label="设备信息" prop="equipmentCode">
@@ -69,9 +69,9 @@ export default {
   data() {
     return {
       submitting: false, customerOptions: [], equipmentOptions: [],
-      form: { customerName: '', equipmentCode: '', equipmentName: '', reporterName: '', reporterPhone: '', faultLevel: 3, faultDescription: '', remark: '' },
+      form: { customerId: null, equipmentCode: '', equipmentName: '', reporterName: '', reporterPhone: '', faultLevel: 3, faultDescription: '', remark: '' },
       rules: {
-        customerName: [{ required: true, message: '请选择客户', trigger: 'change' }],
+        customerId: [{ required: true, message: '请选择客户', trigger: 'change' }],
         equipmentCode: [{ required: true, message: '请选择设备', trigger: 'change' }],
         reporterName: [{ required: true, message: '请输入报修人', trigger: 'blur' }],
         reporterPhone: [{ required: true, message: '请输入联系电话', trigger: 'blur' }],

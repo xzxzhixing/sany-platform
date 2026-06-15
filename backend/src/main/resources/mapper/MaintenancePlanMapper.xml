@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.MaintenancePlanMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.MaintenancePlan">
+        <id column="id" property="id" />
+        <result column="plan_no" property="planNo" />
+        <result column="equipment_id" property="equipmentId" />
+        <result column="equipment_name" property="equipmentName" />
+        <result column="equipment_code" property="equipmentCode" />
+        <result column="customer_name" property="customerName" />
+        <result column="plan_type" property="planType" />
+        <result column="plan_date" property="planDate" />
+        <result column="status" property="status" />
+        <result column="assignee_name" property="assigneeName" />
+        <result column="remark" property="remark" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, plan_no, equipment_id, equipment_name, equipment_code, customer_name,
+        plan_type, plan_date, status, assignee_name, remark,
+        deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_maintenance_plan
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_maintenance_plan
+        <where>
+            deleted = 0
+            <if test="planType != null">
+                AND plan_type = #{planType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="equipmentName != null and equipmentName != ''">
+                AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_maintenance_plan
+        <where>
+            deleted = 0
+            <if test="planType != null">
+                AND plan_type = #{planType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="equipmentName != null and equipmentName != ''">
+                AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_maintenance_plan (
+            plan_no, equipment_id, equipment_name, equipment_code, customer_name,
+            plan_type, plan_date, status, assignee_name, remark,
+            deleted, create_time, update_time
+        ) VALUES (
+            #{planNo}, #{equipmentId}, #{equipmentName}, #{equipmentCode}, #{customerName},
+            #{planType}, #{planDate}, #{status}, #{assigneeName}, #{remark},
+            0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_maintenance_plan
+        <set>
+            update_time = NOW(),
+            <if test="planNo != null">plan_no = #{planNo},</if>
+            <if test="equipmentId != null">equipment_id = #{equipmentId},</if>
+            <if test="equipmentName != null">equipment_name = #{equipmentName},</if>
+            <if test="equipmentCode != null">equipment_code = #{equipmentCode},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="planType != null">plan_type = #{planType},</if>
+            <if test="planDate != null">plan_date = #{planDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="assigneeName != null">assignee_name = #{assigneeName},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_maintenance_plan SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+</mapper>

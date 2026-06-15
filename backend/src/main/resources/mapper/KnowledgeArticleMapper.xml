@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.KnowledgeArticleMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.KnowledgeArticle">
+        <id column="id" property="id" />
+        <result column="article_no" property="articleNo" />
+        <result column="title" property="title" />
+        <result column="category" property="category" />
+        <result column="summary" property="summary" />
+        <result column="tags" property="tags" />
+        <result column="author" property="author" />
+        <result column="publish_date" property="publishDate" />
+        <result column="view_count" property="viewCount" />
+        <result column="status" property="status" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, article_no, title, category, summary, tags, author,
+        publish_date, view_count, status, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_knowledge_article
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_knowledge_article
+        <where>
+            deleted = 0
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="title != null and title != ''">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_knowledge_article
+        <where>
+            deleted = 0
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="title != null and title != ''">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_knowledge_article (
+            article_no, title, category, summary, tags, author,
+            publish_date, view_count, status, deleted, create_time, update_time
+        ) VALUES (
+            #{articleNo}, #{title}, #{category}, #{summary}, #{tags}, #{author},
+            #{publishDate}, #{viewCount}, #{status}, 0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_knowledge_article
+        <set>
+            update_time = NOW(),
+            <if test="articleNo != null">article_no = #{articleNo},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="tags != null">tags = #{tags},</if>
+            <if test="author != null">author = #{author},</if>
+            <if test="publishDate != null">publish_date = #{publishDate},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_knowledge_article SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="selectMaxArticleNo" resultType="string">
+        SELECT article_no FROM tbl_knowledge_article
+        WHERE article_no LIKE 'KB-%'
+        ORDER BY id DESC LIMIT 1
+    </select>
+
+</mapper>

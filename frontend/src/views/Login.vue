@@ -8,10 +8,7 @@
     </div>
     <div class="login-card">
       <div class="login-header">
-        <div class="logo-glow-wrap">
-          <div class="logo-ring"></div>
-          <div class="login-logo">S</div>
-        </div>
+        <img :src="baseUrl + 'logo.png'" class="login-logo-img" />
         <h2>三一工业智能服务平台</h2>
         <p>SANY Industrial Intelligent Service Platform</p>
       </div>
@@ -49,6 +46,7 @@ export default {
   data() {
     return {
       loading: false,
+      baseUrl: process.env.BASE_URL,
       form: { username: 'admin', password: 'admin123' },
       rules: {
         username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
@@ -136,30 +134,9 @@ export default {
 }
 
 .login-header { text-align: center; margin-bottom: 32px; }
-.logo-glow-wrap {
-  position: relative; width: 64px; height: 64px; margin: 0 auto 16px;
-  display: flex; align-items: center; justify-content: center;
-}
-.logo-ring {
-  position: absolute; inset: 0; border-radius: 50%;
-  border: 1px solid rgba(79,70,229,.15);
-  animation: ringSpin 8s linear infinite;
-}
-.logo-ring::before {
-  content: ''; position: absolute; top: -1px; left: 50%;
-  width: 20px; height: 2px; margin-left: -10px;
-  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
-}
-@keyframes ringSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.login-logo {
-  width: 48px; height: 48px; border-radius: 14px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  color: #fff; font-size: 24px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 32px rgba(79,70,229,.25);
+.login-logo-img {
+  width: 64px; height: 64px; border-radius: 14px; margin: 0 auto 16px;
+  object-fit: contain; display: block;
 }
 .login-header h2 {
   margin: 0 0 6px; font-size: 22px; font-weight: 600;

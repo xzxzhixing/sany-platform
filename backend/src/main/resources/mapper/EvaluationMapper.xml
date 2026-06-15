@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.EvaluationMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.Evaluation">
+        <id column="id" property="id" />
+        <result column="order_id" property="orderId" />
+        <result column="order_no" property="orderNo" />
+        <result column="customer_name" property="customerName" />
+        <result column="equipment_name" property="equipmentName" />
+        <result column="rating" property="rating" />
+        <result column="rating_remark" property="ratingRemark" />
+        <result column="evaluator" property="evaluator" />
+        <result column="evaluate_time" property="evaluateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, order_id, order_no, customer_name, equipment_name,
+        rating, rating_remark, evaluator, evaluate_time
+    </sql>
+
+    <select id="findByOrderId" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_evaluation
+        WHERE order_id = #{orderId}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_evaluation
+        <where>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+        </where>
+        ORDER BY evaluate_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_evaluation
+        <where>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_evaluation (
+            order_id, order_no, customer_name, equipment_name,
+            rating, rating_remark, evaluator, evaluate_time
+        ) VALUES (
+            #{orderId}, #{orderNo}, #{customerName}, #{equipmentName},
+            #{rating}, #{ratingRemark}, #{evaluator}, #{evaluateTime}
+        )
+    </insert>
+</mapper>

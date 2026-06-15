@@ -7,7 +7,9 @@ import router from './router'
 import request from './utils/request'
 import installMock from './mock'
 
-installMock(request)
+if (process.env.NODE_ENV !== 'production') {
+  installMock(request)
+}
 
 Vue.use(ElementUI)
 

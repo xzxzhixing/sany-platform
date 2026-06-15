@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.ContractMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.Contract">
+        <id column="id" property="id" />
+        <result column="contract_no" property="contractNo" />
+        <result column="contract_name" property="contractName" />
+        <result column="customer_name" property="customerName" />
+        <result column="contract_type" property="contractType" />
+        <result column="start_date" property="startDate" />
+        <result column="end_date" property="endDate" />
+        <result column="contract_amount" property="contractAmount" />
+        <result column="status" property="status" />
+        <result column="sign_date" property="signDate" />
+        <result column="responsible_person" property="responsiblePerson" />
+        <result column="remark" property="remark" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, contract_no, contract_name, customer_name, contract_type,
+        start_date, end_date, contract_amount, status, sign_date,
+        responsible_person, remark, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_contract
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_contract
+        <where>
+            deleted = 0
+            <if test="contractType != null">
+                AND contract_type = #{contractType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_contract
+        <where>
+            deleted = 0
+            <if test="contractType != null">
+                AND contract_type = #{contractType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectTotalCount" resultType="long">
+        SELECT COUNT(1) FROM tbl_contract WHERE deleted = 0
+    </select>
+
+    <select id="selectActiveCount" resultType="long">
+        SELECT COUNT(1) FROM tbl_contract WHERE deleted = 0 AND status = 1
+    </select>
+
+    <select id="selectExpiringThisMonthCount" resultType="long">
+        SELECT COUNT(1) FROM tbl_contract
+        WHERE deleted = 0 AND status = 1
+        AND end_date &gt;= #{monthStart} AND end_date &lt;= #{monthEnd}
+    </select>
+
+    <select id="selectTotalAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(contract_amount), 0) FROM tbl_contract WHERE deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_contract (
+            contract_no, contract_name, customer_name, contract_type,
+            start_date, end_date, contract_amount, status, sign_date,
+            responsible_person, remark, deleted, create_time, update_time
+        ) VALUES (
+            #{contractNo}, #{contractName}, #{customerName}, #{contractType},
+            #{startDate}, #{endDate}, #{contractAmount}, #{status}, #{signDate},
+            #{responsiblePerson}, #{remark}, 0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_contract
+        <set>
+            update_time = NOW(),
+            <if test="contractNo != null">contract_no = #{contractNo},</if>
+            <if test="contractName != null">contract_name = #{contractName},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="contractType != null">contract_type = #{contractType},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="contractAmount != null">contract_amount = #{contractAmount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="signDate != null">sign_date = #{signDate},</if>
+            <if test="responsiblePerson != null">responsible_person = #{responsiblePerson},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_contract SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>

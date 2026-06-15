@@ -208,7 +208,7 @@ function page(list, params) {
 }
 
 function mock(config) {
-  const u = config.url, m = config.method?.toLowerCase(), p = config.params || {}
+  const u = (config.url || '').replace(/^\/monitor/, ''), m = config.method?.toLowerCase(), p = config.params || {}
   const data = config.data ? (typeof config.data === 'string' ? JSON.parse(config.data) : config.data) : {}
   let result
 

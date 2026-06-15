@@ -2,8 +2,7 @@
   <div class="layout-container">
     <div class="sidebar" :class="{ collapsed }">
       <div class="sidebar-logo">
-        <div class="logo-glow"></div>
-        <div class="logo-icon">S</div>
+        <img :src="baseUrl + 'logo.png'" class="sidebar-logo-img" />
         <span v-show="!collapsed" class="logo-text">三一智能服务</span>
       </div>
       <div class="sidebar-body">
@@ -142,6 +141,20 @@
             <span slot="title">系统设置</span>
           </el-menu-item>
         </el-menu>
+
+        <div class="menu-section" v-show="!collapsed">系统</div>
+        <el-menu
+          :collapse="collapsed"
+          background-color="transparent"
+          text-color="var(--sidebar-text)"
+          active-text-color="#818cf8"
+          class="sidebar-menu"
+        >
+          <el-menu-item index="/" @click="goToBlog">
+            <i class="el-icon-s-home"></i>
+            <span slot="title">返回博客</span>
+          </el-menu-item>
+        </el-menu>
       </div>
       <div class="sidebar-footer" v-show="!collapsed">
         <div class="footer-line"></div>
@@ -208,7 +221,8 @@ export default {
       userAvatar: 'A',
       userRole: 'admin',
       pollTimer: null,
-      theme: getTheme()
+      theme: getTheme(),
+      baseUrl: process.env.BASE_URL
     }
   },
   computed: {
@@ -279,6 +293,9 @@ export default {
         this.$router.push('/login')
         this.$message.success('已退出登录')
       }
+    },
+    goToBlog() {
+     window.location.href = "/";
     }
   }
 }
@@ -303,17 +320,9 @@ export default {
   position: relative; overflow: hidden;
   border-bottom: 1px solid var(--sidebar-divider);
 }
-.logo-glow {
-  position: absolute; left: -20px; top: -20px; width: 80px; height: 80px;
-  background: radial-gradient(circle, rgba(99,102,241,.15), transparent 70%);
-  pointer-events: none;
-}
-.logo-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: linear-gradient(135deg, #4f46e5, #0891b2);
-  color: #fff; font-size: 16px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(99,102,241,.3);
+.sidebar-logo-img {
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+  object-fit: contain;
 }
 .logo-text {
   color: #e2e8f0; font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold);

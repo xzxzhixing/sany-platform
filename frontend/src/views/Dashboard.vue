@@ -114,36 +114,65 @@
 </template>
 
 <script>
+import request from '../utils/request'
+
 export default {
   name: 'Dashboard',
   data() {
     return {
+      timer: null,
       cards: [
-        { icon: 'el-icon-document', title: '待处理工单', value: '12', color: 'orange' },
-        { icon: 'el-icon-s-data', title: '本月工单', value: '86', color: 'blue' },
-        { icon: 'el-icon-success', title: '完成率', value: '94%', color: 'green' },
-        { icon: 'el-icon-warning', title: '设备告警', value: '3', color: 'red' }
+        { icon: 'el-icon-document', title: '待处理工单', value: '-', color: 'orange', key: 'pendingOrders' },
+        { icon: 'el-icon-s-data', title: '本月工单', value: '-', color: 'blue', key: 'monthOrders' },
+        { icon: 'el-icon-success', title: '完成率', value: '-', color: 'green', key: 'completionRate' },
+        { icon: 'el-icon-warning', title: '设备告警', value: '-', color: 'red', key: 'alarmCount' }
       ],
-      todos: [
-        { text: '工单 WO202605250012 待派单', tag: '紧急', type: 'danger' },
-        { text: 'SY485H挖掘机保养到期', tag: '保养', type: 'warning' },
-        { text: '长沙工厂本月服务报告待审核', tag: '审核', type: 'info' }
-      ],
-      trendData: [
-        { day: '05-20', count: 8, height: 80, color: '#1890ff' },
-        { day: '05-21', count: 12, height: 120, color: '#1890ff' },
-        { day: '05-22', count: 6, height: 60, color: '#1890ff' },
-        { day: '05-23', count: 15, height: 150, color: '#52c41a' },
-        { day: '05-24', count: 10, height: 100, color: '#1890ff' },
-        { day: '05-25', count: 14, height: 140, color: '#1890ff' },
-        { day: '05-26', count: 9, height: 90, color: '#1890ff' }
-      ],
-      statusDist: [
-        { label: '待处理', count: 18, percent: 25, color: '#faad14' },
-        { label: '处理中', count: 24, percent: 33, color: '#1890ff' },
-        { label: '已完成', count: 28, percent: 39, color: '#52c41a' },
-        { label: '已关闭', count: 2, percent: 3, color: '#909399' }
-      ]
+      todos: [],
+      trendData: [],
+      statusDist: [],
+      maxBarHeight: 180
+    }
+  },
+  created() {
+    this.fetchOverview()
+    this.timer = setInterval(() => this.fetchOverview(), 30000)
+  },
+  beforeDestroy() { clearInterval(this.timer) },
+  methods: {
+    async fetchOverview() {
+      try {
+        const res = await request({ url: '/api/v1/dashboard/overview', method: 'get' })
+        if (res.code === 200 && res.data) {
+          this.applyData(res.data)
+        }
+      } catch {}
+    },
+    applyData(data) {
+      for (const card of this.cards) {
+        let v = data[card.key]
+        if (card.key === 'completionRate') v = (v ?? 0) + '%'
+        else v = v ?? 0
+        card.value = v
+      }
+      this.todos = (data.todos || []).map((t, i) => ({
+        text: t.text || '',
+        tag: t.tag || '待处理',
+        type: t.type || 'info'
+      }))
+      const raw = data.trendData || []
+      const maxCount = Math.max(1, ...raw.map(d => d.count || 0))
+      this.trendData = raw.map((d, idx) => ({
+        day: d.day || '',
+        count: d.count || 0,
+        height: Math.max(20, ((d.count || 0) / maxCount) * this.maxBarHeight),
+        color: idx === raw.length - 1 ? '#52c41a' : '#1890ff'
+      }))
+      this.statusDist = (data.statusDist || []).map(s => ({
+        label: s.label || '',
+        count: s.count || 0,
+        percent: s.percent || 0,
+        color: s.color || '#909399'
+      }))
     }
   }
 }

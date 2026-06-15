@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.WarehouseItemMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.WarehouseItem">
+        <id column="id" property="id" />
+        <result column="item_code" property="itemCode" />
+        <result column="item_name" property="itemName" />
+        <result column="category" property="category" />
+        <result column="specification" property="specification" />
+        <result column="unit" property="unit" />
+        <result column="stock_quantity" property="stockQuantity" />
+        <result column="min_stock" property="minStock" />
+        <result column="max_stock" property="maxStock" />
+        <result column="location" property="location" />
+        <result column="last_inbound" property="lastInbound" />
+        <result column="last_outbound" property="lastOutbound" />
+        <result column="status" property="status" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, item_code, item_name, category, specification, unit,
+        stock_quantity, min_stock, max_stock, location,
+        last_inbound, last_outbound, status, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_warehouse_item
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_warehouse_item
+        <where>
+            deleted = 0
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name LIKE CONCAT('%', #{itemName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_warehouse_item
+        <where>
+            deleted = 0
+            <if test="category != null and category != ''">
+                AND category = #{category}
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name LIKE CONCAT('%', #{itemName}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_warehouse_item (
+            item_code, item_name, category, specification, unit,
+            stock_quantity, min_stock, max_stock, location,
+            last_inbound, last_outbound, status, deleted, create_time, update_time
+        ) VALUES (
+            #{itemCode}, #{itemName}, #{category}, #{specification}, #{unit},
+            #{stockQuantity}, #{minStock}, #{maxStock}, #{location},
+            #{lastInbound}, #{lastOutbound}, #{status}, 0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_warehouse_item
+        <set>
+            update_time = NOW(),
+            <if test="itemCode != null">item_code = #{itemCode},</if>
+            <if test="itemName != null">item_name = #{itemName},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="specification != null">specification = #{specification},</if>
+            <if test="unit != null">unit = #{unit},</if>
+            <if test="stockQuantity != null">stock_quantity = #{stockQuantity},</if>
+            <if test="minStock != null">min_stock = #{minStock},</if>
+            <if test="maxStock != null">max_stock = #{maxStock},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="lastInbound != null">last_inbound = #{lastInbound},</if>
+            <if test="lastOutbound != null">last_outbound = #{lastOutbound},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_warehouse_item SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+</mapper>

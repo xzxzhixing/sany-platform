@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.DashboardMapper">
+
+    <select id="selectOverviewStats" resultType="java.util.Map">
+        SELECT
+            COUNT(CASE WHEN wo.order_status IN (0, 1) THEN 1 END)                                        AS pendingOrders,
+            COUNT(CASE WHEN DATE_FORMAT(wo.create_time, '%Y%m') = DATE_FORMAT(NOW(), '%Y%m') THEN 1 END) AS monthOrders,
+            ROUND(COUNT(CASE WHEN wo.order_status IN (4, 5) THEN 1 END) * 100.0 / GREATEST(COUNT(1), 1), 1) AS completionRate,
+            COUNT(CASE WHEN wo.fault_level = 1 AND wo.order_status NOT IN (4, 5, 6) THEN 1 END)         AS alarmCount
+        FROM tbl_work_order wo
+        WHERE wo.deleted = 0
+    </select>
+
+    <select id="selectTrendLast7Days" resultType="java.util.Map">
+        SELECT
+            DATE_FORMAT(create_time, '%m-%d') AS day,
+            COUNT(1)                          AS count
+        FROM tbl_work_order
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL 6 DAY)
+          AND deleted = 0
+        GROUP BY DATE_FORMAT(create_time, '%Y-%m-%d')
+        ORDER BY DATE_FORMAT(create_time, '%Y-%m-%d')
+    </select>
+
+    <select id="selectStatusDistribution" resultType="java.util.Map">
+        SELECT
+            wo.order_status                                        AS `key`,
+            CASE wo.order_status
+                WHEN 0 THEN '待派单'
+                WHEN 1 THEN '待接单'
+                WHEN 2 THEN '处理中'
+                WHEN 3 THEN '待验收'
+                WHEN 4 THEN '已完成'
+                WHEN 5 THEN '已关闭'
+                WHEN 6 THEN '已取消'
+                ELSE '未知' END                                     AS label,
+            COUNT(1)                                               AS count,
+            CASE wo.order_status
+                WHEN 0 THEN '#faad14'
+                WHEN 1 THEN '#1890ff'
+                WHEN 2 THEN '#722ed1'
+                WHEN 3 THEN '#13c2c2'
+                WHEN 4 THEN '#52c41a'
+                WHEN 5 THEN '#909399'
+                WHEN 6 THEN '#d9d9d9'
+                ELSE '#909399' END                                  AS color
+        FROM tbl_work_order wo
+        WHERE wo.deleted = 0
+        GROUP BY wo.order_status
+        ORDER BY wo.order_status
+    </select>
+
+    <select id="selectRecentTodos" resultType="java.util.Map">
+        SELECT
+            wo.id,
+            CONCAT('工单 ', wo.order_no, ' ', CASE wo.order_status
+                WHEN 0 THEN '待派单'
+                WHEN 1 THEN '待接单'
+                WHEN 2 THEN '处理中'
+                WHEN 3 THEN '待验收'
+                ELSE '待处理' END) AS text,
+            CASE wo.order_status
+                WHEN 0 THEN '待派单'
+                WHEN 1 THEN '待接单'
+                WHEN 2 THEN '处理中'
+                ELSE '待处理' END AS tag,
+            CASE wo.fault_level
+                WHEN 1 THEN 'danger'
+                WHEN 2 THEN 'warning'
+                ELSE 'info' END AS type
+        FROM tbl_work_order wo
+        WHERE wo.order_status IN (0, 1, 2)
+          AND wo.deleted = 0
+        ORDER BY wo.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectTotalEquipment" resultType="long">
+        SELECT COUNT(1) FROM tbl_equipment WHERE deleted = 0
+    </select>
+
+    <select id="selectOnlineEquipment" resultType="long">
+        SELECT COUNT(1) FROM tbl_equipment WHERE status = 1 AND deleted = 0
+    </select>
+
+    <select id="selectEquipmentDistribution" resultType="java.util.Map">
+        SELECT
+            eq.status                                              AS `key`,
+            CASE eq.status
+                WHEN 1 THEN '运行中'
+                WHEN 2 THEN '空闲'
+                WHEN 3 THEN '故障'
+                ELSE '离线' END                                     AS label,
+            COUNT(1)                                               AS count,
+            CASE eq.status
+                WHEN 1 THEN '#059669'
+                WHEN 2 THEN '#d97706'
+                WHEN 3 THEN '#dc2626'
+                ELSE '#909399' END                                  AS color
+        FROM tbl_equipment eq
+        WHERE eq.deleted = 0
+        GROUP BY eq.status
+        ORDER BY eq.status
+    </select>
+
+    <select id="selectTodayTimeline" resultType="java.util.Map">
+        SELECT
+            CONCAT(wo.order_no, ' ', CASE wo.order_status
+                WHEN 0 THEN '已创建'
+                WHEN 1 THEN '已接单'
+                WHEN 2 THEN '已到达'
+                WHEN 3 THEN '待验收'
+                WHEN 4 THEN '已完成'
+                WHEN 5 THEN '已关闭'
+                WHEN 6 THEN '已取消'
+                ELSE '已更新' END)                                AS title,
+            COALESCE(eq.equipment_name, '')                      AS `desc`,
+            DATE_FORMAT(wo.update_time, '%H:%i')                 AS `time`,
+            CASE wo.order_status
+                WHEN 0 THEN '#1890ff'
+                WHEN 1 THEN '#13c2c2'
+                WHEN 2 THEN '#722ed1'
+                WHEN 3 THEN '#faad14'
+                WHEN 4 THEN '#52c41a'
+                ELSE '#909399' END                                AS color
+        FROM tbl_work_order wo
+        LEFT JOIN tbl_equipment eq ON wo.equipment_id = eq.id
+        WHERE DATE(wo.update_time) = CURDATE()
+          AND wo.deleted = 0
+        ORDER BY wo.update_time DESC
+        LIMIT 10
+    </select>
+
+    <select id="selectAlarms" resultType="java.util.Map">
+        SELECT
+            CASE wo.fault_level
+                WHEN 1 THEN 'CRITICAL'
+                WHEN 2 THEN 'WARNING'
+                ELSE 'INFO' END                                  AS level,
+            CONCAT(COALESCE(eq.equipment_name, '设备'), ': ',
+                   LEFT(wo.fault_description, 40))               AS message,
+            DATE_FORMAT(wo.create_time, '%H:%i')                 AS `time`
+        FROM tbl_work_order wo
+        LEFT JOIN tbl_equipment eq ON wo.equipment_id = eq.id
+        WHERE wo.fault_level IN (1, 2)
+          AND wo.order_status NOT IN (4, 5, 6)
+          AND wo.deleted = 0
+        ORDER BY wo.fault_level ASC, wo.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectDeviceHealth" resultType="java.util.Map">
+        SELECT
+            eq.equipment_name                           AS name,
+            GREATEST(
+                100 - COALESCE(
+                    (SELECT COUNT(1) * 10
+                     FROM tbl_work_order wo2
+                     WHERE wo2.equipment_id = eq.id
+                       AND wo2.deleted = 0
+                       AND wo2.create_time >= DATE_SUB(NOW(), INTERVAL 6 MONTH)), 0),
+                10
+            )                                           AS score
+        FROM tbl_equipment eq
+        WHERE eq.deleted = 0
+        ORDER BY score DESC
+        LIMIT 5
+    </select>
+
+    <select id="selectTodayOrderCount" resultType="long">
+        SELECT COUNT(1) FROM tbl_work_order
+        WHERE DATE(create_time) = CURDATE() AND deleted = 0
+    </select>
+
+    <select id="selectOnlineEngineers" resultType="long">
+        SELECT COUNT(1) FROM tbl_sys_user
+        WHERE deleted = 0
+    </select>
+
+    <select id="selectDistinctMonths" resultType="string">
+        SELECT DISTINCT DATE_FORMAT(create_time, '%Y-%m') AS month
+        FROM tbl_work_order
+        WHERE deleted = 0
+        ORDER BY month DESC
+    </select>
+
+</mapper>

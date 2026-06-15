@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.SettlementMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.Settlement">
+        <id column="id" property="id" />
+        <result column="settlement_no" property="settlementNo" />
+        <result column="order_no" property="orderNo" />
+        <result column="customer_name" property="customerName" />
+        <result column="equipment_name" property="equipmentName" />
+        <result column="service_type" property="serviceType" />
+        <result column="service_fee" property="serviceFee" />
+        <result column="parts_fee" property="partsFee" />
+        <result column="total_amount" property="totalAmount" />
+        <result column="billing_date" property="billingDate" />
+        <result column="status" property="status" />
+        <result column="payment_method" property="paymentMethod" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, settlement_no, order_no, customer_name, equipment_name,
+        service_type, service_fee, parts_fee, total_amount, billing_date,
+        status, payment_method, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_settlement
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_settlement
+        <where>
+            deleted = 0
+            <if test="serviceType != null">
+                AND service_type = #{serviceType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_settlement
+        <where>
+            deleted = 0
+            <if test="serviceType != null">
+                AND service_type = #{serviceType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="customerName != null and customerName != ''">
+                AND customer_name LIKE CONCAT('%', #{customerName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_settlement (
+            settlement_no, order_no, customer_name, equipment_name,
+            service_type, service_fee, parts_fee, total_amount, billing_date,
+            status, payment_method, deleted, create_time, update_time
+        ) VALUES (
+            #{settlementNo}, #{orderNo}, #{customerName}, #{equipmentName},
+            #{serviceType}, #{serviceFee}, #{partsFee}, #{totalAmount}, #{billingDate},
+            #{status}, #{paymentMethod}, 0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_settlement
+        <set>
+            update_time = NOW(),
+            <if test="settlementNo != null">settlement_no = #{settlementNo},</if>
+            <if test="orderNo != null">order_no = #{orderNo},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="equipmentName != null">equipment_name = #{equipmentName},</if>
+            <if test="serviceType != null">service_type = #{serviceType},</if>
+            <if test="serviceFee != null">service_fee = #{serviceFee},</if>
+            <if test="partsFee != null">parts_fee = #{partsFee},</if>
+            <if test="totalAmount != null">total_amount = #{totalAmount},</if>
+            <if test="billingDate != null">billing_date = #{billingDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="paymentMethod != null">payment_method = #{paymentMethod},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_settlement SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateStatusWithBillingDate">
+        UPDATE tbl_settlement
+        SET status = #{status},
+            billing_date = #{billingDate},
+            update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="selectPendingInvoice" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(total_amount), 0) FROM tbl_settlement
+        WHERE deleted = 0 AND status = 0
+    </select>
+
+    <select id="selectCollectedThisMonth" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(total_amount), 0) FROM tbl_settlement
+        WHERE deleted = 0 AND status &gt;= 2
+        AND billing_date &gt;= #{monthStart} AND billing_date &lt;= #{monthEnd}
+    </select>
+
+    <select id="selectQuarterTotal" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(total_amount), 0) FROM tbl_settlement
+        WHERE deleted = 0
+    </select>
+
+    <select id="selectUncollected" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(total_amount), 0) FROM tbl_settlement
+        WHERE deleted = 0 AND status &lt; 2
+    </select>
+
+</mapper>

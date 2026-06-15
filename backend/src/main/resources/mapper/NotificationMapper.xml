@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.NotificationMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.Notification">
+        <id column="id" property="id" />
+        <result column="title" property="title" />
+        <result column="content" property="content" />
+        <result column="type" property="type" />
+        <result column="is_read" property="isRead" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, title, content, type, is_read, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_notification
+        WHERE deleted = 0
+        <if test="type != null">
+            AND type = #{type}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_notification
+        WHERE deleted = 0
+        <if test="type != null">
+            AND type = #{type}
+        </if>
+    </select>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_notification
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_notification (title, content, type, is_read, deleted, create_time, update_time)
+        VALUES (#{title}, #{content}, #{type}, 0, 0, NOW(), NOW())
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_notification
+        <set>
+            update_time = NOW(),
+            <if test="isRead != null">is_read = #{isRead},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="markAllRead">
+        UPDATE tbl_notification SET is_read = 1, update_time = NOW()
+        WHERE deleted = 0 AND is_read = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_notification SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>

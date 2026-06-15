@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.ServiceReportMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.ServiceReport">
+        <id column="id" property="id" />
+        <result column="report_no" property="reportNo" />
+        <result column="order_no" property="orderNo" />
+        <result column="report_type" property="reportType" />
+        <result column="title" property="title" />
+        <result column="equipment_name" property="equipmentName" />
+        <result column="equipment_code" property="equipmentCode" />
+        <result column="customer_name" property="customerName" />
+        <result column="create_by_name" property="createByName" />
+        <result column="content" property="content" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, report_no, order_no, report_type, title, equipment_name,
+        equipment_code, customer_name, create_by_name, content, create_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_service_report
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_service_report
+        <where>
+            <if test="reportNo != null and reportNo != ''">
+                AND report_no LIKE CONCAT('%', #{reportNo}, '%')
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+            <if test="reportType != null">
+                AND report_type = #{reportType}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_service_report
+        <where>
+            <if test="reportNo != null and reportNo != ''">
+                AND report_no LIKE CONCAT('%', #{reportNo}, '%')
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                AND order_no LIKE CONCAT('%', #{orderNo}, '%')
+            </if>
+            <if test="reportType != null">
+                AND report_type = #{reportType}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_service_report (
+            report_no, order_no, report_type, title, equipment_name,
+            equipment_code, customer_name, create_by_name, content, create_time
+        ) VALUES (
+            #{reportNo}, #{orderNo}, #{reportType}, #{title}, #{equipmentName},
+            #{equipmentCode}, #{customerName}, #{createByName}, #{content}, NOW()
+        )
+    </insert>
+
+    <delete id="deleteById">
+        DELETE FROM tbl_service_report WHERE id = #{id}
+    </delete>
+
+    <select id="selectMaxReportNoByDate" resultType="string">
+        SELECT report_no FROM tbl_service_report
+        WHERE report_no LIKE CONCAT(#{datePrefix}, '%')
+        ORDER BY report_no DESC LIMIT 1
+    </select>
+</mapper>

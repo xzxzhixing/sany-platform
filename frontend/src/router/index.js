@@ -33,7 +33,14 @@ import Settings from '../views/Settings.vue'
 
 Vue.use(Router)
 
+// suppress NavigationDuplicated error when clicking same-route links
+const originalPush = Router.prototype.push
+Router.prototype.push = function push (location) {
+  return originalPush.call(this, location).catch(err => err)
+}
+
 const router = new Router({
+  base: '/monitor/',
   routes: [
     { path: '/login', name: 'Login', component: Login, meta: { noAuth: true } },
     { path: '/', redirect: '/dashboard' },

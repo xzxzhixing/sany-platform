@@ -1,11 +1,12 @@
 module.exports = {
-  publicPath: '/',
+  publicPath: '/monitor/',
   outputDir: 'dist',
   devServer: {
-    port: 9528,
+    port: 3001,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
+      '/monitor/api': {
+        target: 'http://localhost:8083',
+        pathRewrite: { '^/monitor/api': '/api' },
         changeOrigin: true
       }
     }

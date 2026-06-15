@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.InspectionTaskMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.InspectionTask">
+        <id column="id" property="id" />
+        <result column="task_no" property="taskNo" />
+        <result column="equipment_name" property="equipmentName" />
+        <result column="equipment_code" property="equipmentCode" />
+        <result column="customer_name" property="customerName" />
+        <result column="task_type" property="taskType" />
+        <result column="assignee" property="assignee" />
+        <result column="plan_date" property="planDate" />
+        <result column="actual_date" property="actualDate" />
+        <result column="status" property="status" />
+        <result column="result" property="result" />
+        <result column="description" property="description" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, task_no, equipment_name, equipment_code, customer_name, task_type,
+        assignee, plan_date, actual_date, status, result, description,
+        deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_inspection_task
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_inspection_task
+        <where>
+            deleted = 0
+            <if test="taskType != null">
+                AND task_type = #{taskType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="equipmentName != null and equipmentName != ''">
+                AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_inspection_task
+        <where>
+            deleted = 0
+            <if test="taskType != null">
+                AND task_type = #{taskType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="equipmentName != null and equipmentName != ''">
+                AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="countByStatus" resultType="long">
+        SELECT COUNT(1) FROM tbl_inspection_task
+        WHERE deleted = 0 AND status = #{status}
+    </select>
+
+    <select id="countDelayed" resultType="long">
+        SELECT COUNT(1) FROM tbl_inspection_task
+        WHERE deleted = 0 AND plan_date &lt; CURDATE() AND status != 2
+    </select>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(1) FROM tbl_inspection_task
+        WHERE deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_inspection_task (
+            task_no, equipment_name, equipment_code, customer_name, task_type,
+            assignee, plan_date, actual_date, status, result, description,
+            deleted, create_time, update_time
+        ) VALUES (
+            #{taskNo}, #{equipmentName}, #{equipmentCode}, #{customerName}, #{taskType},
+            #{assignee}, #{planDate}, #{actualDate}, #{status}, #{result}, #{description},
+            0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_inspection_task
+        <set>
+            update_time = NOW(),
+            <if test="taskNo != null">task_no = #{taskNo},</if>
+            <if test="equipmentName != null">equipment_name = #{equipmentName},</if>
+            <if test="equipmentCode != null">equipment_code = #{equipmentCode},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="taskType != null">task_type = #{taskType},</if>
+            <if test="assignee != null">assignee = #{assignee},</if>
+            <if test="planDate != null">plan_date = #{planDate},</if>
+            <if test="actualDate != null">actual_date = #{actualDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="result != null">result = #{result},</if>
+            <if test="description != null">description = #{description},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateStatus">
+        UPDATE tbl_inspection_task
+        SET status = #{newStatus}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateStart">
+        UPDATE tbl_inspection_task
+        SET status = 1, actual_date = #{actualDate}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="updateComplete">
+        UPDATE tbl_inspection_task
+        SET status = #{status}, result = #{result}, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_inspection_task SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="selectMaxTaskNoByDate" resultType="string">
+        SELECT task_no FROM tbl_inspection_task
+        WHERE task_no LIKE CONCAT(#{datePrefix}, '%')
+        ORDER BY task_no DESC LIMIT 1
+    </select>
+</mapper>

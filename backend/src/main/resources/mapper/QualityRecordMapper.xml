@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.QualityRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.QualityRecord">
+        <id column="id" property="id" />
+        <result column="record_no" property="recordNo" />
+        <result column="equipment_name" property="equipmentName" />
+        <result column="equipment_code" property="equipmentCode" />
+        <result column="customer_name" property="customerName" />
+        <result column="inspector" property="inspector" />
+        <result column="inspection_date" property="inspectionDate" />
+        <result column="inspection_type" property="inspectionType" />
+        <result column="result" property="result" />
+        <result column="defect_count" property="defectCount" />
+        <result column="remark" property="remark" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, record_no, equipment_name, equipment_code, customer_name, inspector,
+        inspection_date, inspection_type, result, defect_count, remark,
+        deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_quality_record
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_quality_record
+        <where>
+            deleted = 0
+            <if test="inspectionType != null">
+                AND inspection_type = #{inspectionType}
+            </if>
+            <if test="result != null">
+                AND result = #{result}
+            </if>
+            <if test="equipmentName != null and equipmentName != ''">
+                AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_quality_record
+        <where>
+            deleted = 0
+            <if test="inspectionType != null">
+                AND inspection_type = #{inspectionType}
+            </if>
+            <if test="result != null">
+                AND result = #{result}
+            </if>
+            <if test="equipmentName != null and equipmentName != ''">
+                AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_quality_record (
+            record_no, equipment_name, equipment_code, customer_name, inspector,
+            inspection_date, inspection_type, result, defect_count, remark,
+            deleted, create_time, update_time
+        ) VALUES (
+            #{recordNo}, #{equipmentName}, #{equipmentCode}, #{customerName}, #{inspector},
+            #{inspectionDate}, #{inspectionType}, #{result}, #{defectCount}, #{remark},
+            0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_quality_record
+        <set>
+            update_time = NOW(),
+            <if test="recordNo != null">record_no = #{recordNo},</if>
+            <if test="equipmentName != null">equipment_name = #{equipmentName},</if>
+            <if test="equipmentCode != null">equipment_code = #{equipmentCode},</if>
+            <if test="customerName != null">customer_name = #{customerName},</if>
+            <if test="inspector != null">inspector = #{inspector},</if>
+            <if test="inspectionDate != null">inspection_date = #{inspectionDate},</if>
+            <if test="inspectionType != null">inspection_type = #{inspectionType},</if>
+            <if test="result != null">result = #{result},</if>
+            <if test="defectCount != null">defect_count = #{defectCount},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_quality_record SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="selectMaxRecordNoByDate" resultType="string">
+        SELECT record_no FROM tbl_quality_record
+        WHERE record_no LIKE CONCAT(#{datePrefix}, '%')
+        ORDER BY record_no DESC LIMIT 1
+    </select>
+</mapper>

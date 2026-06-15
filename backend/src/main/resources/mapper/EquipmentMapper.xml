@@ -37,4 +37,38 @@
         SELECT <include refid="BaseColumns"/> FROM tbl_equipment
         WHERE equipment_code = #{equipmentCode} AND deleted = 0
     </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns"/> FROM tbl_equipment
+        WHERE deleted = 0
+        <if test="equipmentName != null and equipmentName != ''">
+            AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+        </if>
+        <if test="equipmentCode != null and equipmentCode != ''">
+            AND equipment_code LIKE CONCAT('%', #{equipmentCode}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(*) FROM tbl_equipment
+        WHERE deleted = 0
+        <if test="equipmentName != null and equipmentName != ''">
+            AND equipment_name LIKE CONCAT('%', #{equipmentName}, '%')
+        </if>
+        <if test="equipmentCode != null and equipmentCode != ''">
+            AND equipment_code LIKE CONCAT('%', #{equipmentCode}, '%')
+        </if>
+        <if test="status != null">
+            AND status = #{status}
+        </if>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_equipment (equipment_code, equipment_name, equipment_model, serial_number, category, customer_id, install_address, purchase_date, warranty_start, warranty_end, maintenance_cycle, maintenance_hour, status, deleted, create_time, update_time)
+        VALUES (#{equipmentCode}, #{equipmentName}, #{equipmentModel}, #{serialNumber}, #{category}, #{customerId}, #{installAddress}, #{purchaseDate}, #{warrantyStart}, #{warrantyEnd}, #{maintenanceCycle}, #{maintenanceHour}, #{status}, 0, NOW(), NOW())
+    </insert>
 </mapper>

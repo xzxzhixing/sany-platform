@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.TrainingRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.TrainingRecord">
+        <id column="id" property="id" />
+        <result column="record_no" property="recordNo" />
+        <result column="course_name" property="courseName" />
+        <result column="course_type" property="courseType" />
+        <result column="trainer" property="trainer" />
+        <result column="trainee_count" property="traineeCount" />
+        <result column="trainee_names" property="traineeNames" />
+        <result column="start_date" property="startDate" />
+        <result column="end_date" property="endDate" />
+        <result column="duration" property="duration" />
+        <result column="status" property="status" />
+        <result column="exam_pass_rate" property="examPassRate" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, record_no, course_name, course_type, trainer, trainee_count,
+        trainee_names, start_date, end_date, duration, status,
+        exam_pass_rate, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_training_record
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_training_record
+        <where>
+            deleted = 0
+            <if test="courseType != null">
+                AND course_type = #{courseType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_training_record
+        <where>
+            deleted = 0
+            <if test="courseType != null">
+                AND course_type = #{courseType}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_training_record (
+            record_no, course_name, course_type, trainer, trainee_count,
+            trainee_names, start_date, end_date, duration, status,
+            exam_pass_rate, deleted, create_time, update_time
+        ) VALUES (
+            #{recordNo}, #{courseName}, #{courseType}, #{trainer}, #{traineeCount},
+            #{traineeNames}, #{startDate}, #{endDate}, #{duration}, #{status},
+            #{examPassRate}, 0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_training_record
+        <set>
+            update_time = NOW(),
+            <if test="recordNo != null">record_no = #{recordNo},</if>
+            <if test="courseName != null">course_name = #{courseName},</if>
+            <if test="courseType != null">course_type = #{courseType},</if>
+            <if test="trainer != null">trainer = #{trainer},</if>
+            <if test="traineeCount != null">trainee_count = #{traineeCount},</if>
+            <if test="traineeNames != null">trainee_names = #{traineeNames},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="examPassRate != null">exam_pass_rate = #{examPassRate},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_training_record SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <select id="selectMaxRecordNoByDate" resultType="string">
+        SELECT record_no FROM tbl_training_record
+        WHERE record_no LIKE CONCAT('TR-', #{datePrefix}, '%')
+        ORDER BY id DESC LIMIT 1
+    </select>
+
+</mapper>

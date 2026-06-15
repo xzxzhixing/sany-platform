@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.EmployeeMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.Employee">
+        <id column="id" property="id" />
+        <result column="employee_no" property="employeeNo" />
+        <result column="employee_name" property="employeeName" />
+        <result column="gender" property="gender" />
+        <result column="position" property="position" />
+        <result column="phone" property="phone" />
+        <result column="email" property="email" />
+        <result column="department" property="department" />
+        <result column="status" property="status" />
+        <result column="remark" property="remark" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, employee_no, employee_name, gender, position, phone, email,
+        department, status, remark, deleted, create_time, update_time
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_employee
+        WHERE id = #{id} AND deleted = 0
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_employee
+        <where>
+            deleted = 0
+            <if test="employeeName != null and employeeName != ''">
+                AND employee_name LIKE CONCAT('%', #{employeeName}, '%')
+            </if>
+            <if test="employeeNo != null and employeeNo != ''">
+                AND employee_no LIKE CONCAT('%', #{employeeNo}, '%')
+            </if>
+            <if test="position != null and position != ''">
+                AND position LIKE CONCAT('%', #{position}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+        ORDER BY create_time DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_employee
+        <where>
+            deleted = 0
+            <if test="employeeName != null and employeeName != ''">
+                AND employee_name LIKE CONCAT('%', #{employeeName}, '%')
+            </if>
+            <if test="employeeNo != null and employeeNo != ''">
+                AND employee_no LIKE CONCAT('%', #{employeeNo}, '%')
+            </if>
+            <if test="position != null and position != ''">
+                AND position LIKE CONCAT('%', #{position}, '%')
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_employee (
+            employee_no, employee_name, gender, position, phone, email,
+            department, status, remark, deleted, create_time, update_time
+        ) VALUES (
+            #{employeeNo}, #{employeeName}, #{gender}, #{position}, #{phone}, #{email},
+            #{department}, #{status}, #{remark}, 0, NOW(), NOW()
+        )
+    </insert>
+
+    <update id="updateById">
+        UPDATE tbl_employee
+        <set>
+            update_time = NOW(),
+            <if test="employeeNo != null">employee_no = #{employeeNo},</if>
+            <if test="employeeName != null">employee_name = #{employeeName},</if>
+            <if test="gender != null">gender = #{gender},</if>
+            <if test="position != null">position = #{position},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="department != null">department = #{department},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+    <update id="deleteById">
+        UPDATE tbl_employee SET deleted = 1, update_time = NOW()
+        WHERE id = #{id} AND deleted = 0
+    </update>
+</mapper>

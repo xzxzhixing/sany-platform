@@ -2,7 +2,7 @@ import axios from 'axios'
 import { Message } from 'element-ui'
 
 const request = axios.create({
-  baseURL: process.env.VUE_APP_API_BASE || '',
+  baseURL: '/monitor',
   timeout: 15000
 })
 
@@ -21,7 +21,7 @@ request.interceptors.response.use(res => {
 }, err => {
   if (err.response) {
     const s = err.response.status
-    if (s === 401) { Message.error('登录过期'); sessionStorage.clear(); window.location.href = '/login' }
+    if (s === 401) { Message.error('登录过期'); sessionStorage.clear(); window.location.href = '/monitor/' }
     else if (s === 403) Message.error('无权限')
     else Message.error(err.response.data?.message || `请求失败(${s})`)
   } else Message.error('网络异常')

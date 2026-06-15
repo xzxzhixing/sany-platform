@@ -80,9 +80,9 @@
             </el-form-item>
           </el-col>
         </el-row>
-        <el-form-item label="所属客户" prop="customerName">
-          <el-select v-model="form.customerName" filterable placeholder="选择客户" style="width:100%">
-            <el-option v-for="c in customerOptions" :key="c.id" :label="c.customerName" :value="c.customerName" />
+        <el-form-item label="所属客户" prop="customerId">
+          <el-select v-model="form.customerId" filterable placeholder="选择客户" style="width:100%">
+            <el-option v-for="c in customerOptions" :key="c.id" :label="c.customerName" :value="c.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -110,11 +110,11 @@ export default {
       list: [], loading: false, total: 0,
       queryParam: { equipmentName: '', equipmentCode: '', status: null, pageNum: 1, pageSize: 10 },
       dialogVisible: false, submitting: false, customerOptions: [],
-      form: { equipmentCode: '', equipmentName: '', equipmentModel: '', category: '', customerName: '', status: 1 },
+      form: { equipmentCode: '', equipmentName: '', equipmentModel: '', category: '', customerId: null, status: 1 },
       rules: {
         equipmentCode: [{ required: true, message: '请输入设备编号', trigger: 'blur' }],
         equipmentName: [{ required: true, message: '请输入设备名称', trigger: 'blur' }],
-        customerName: [{ required: true, message: '请选择所属客户', trigger: 'change' }]
+        customerId: [{ required: true, message: '请选择所属客户', trigger: 'change' }]
       }
     }
   },
@@ -131,7 +131,7 @@ export default {
     handleSearch() { this.queryParam.pageNum = 1; this.fetchData() },
     handleReset() { this.queryParam = { equipmentName: '', equipmentCode: '', status: null, pageNum: 1, pageSize: 10 }; this.fetchData() },
     async openDialog() {
-      this.form = { equipmentCode: '', equipmentName: '', equipmentModel: '', category: '', customerName: '', status: 1 }
+      this.form = { equipmentCode: '', equipmentName: '', equipmentModel: '', category: '', customerId: null, status: 1 }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.formRef?.clearValidate())
       try {

@@ -11,18 +11,18 @@
       <el-form :inline="true" :model="queryParam" size="medium">
         <el-form-item label="任务类型">
           <el-select v-model="queryParam.taskType" placeholder="全部类型" clearable style="width:140px">
-            <el-option label="日常巡检" value="DAILY" />
-            <el-option label="专项检查" value="SPECIAL" />
-            <el-option label="安全排查" value="SAFETY" />
-            <el-option label="质量检查" value="QUALITY" />
+            <el-option label="日常巡检" :value="1" />
+            <el-option label="专项检查" :value="2" />
+            <el-option label="安全排查" :value="3" />
+            <el-option label="质量检查" :value="4" />
           </el-select>
         </el-form-item>
         <el-form-item label="任务状态">
           <el-select v-model="queryParam.status" placeholder="全部状态" clearable style="width:130px">
-            <el-option label="待执行" value="PENDING" />
-            <el-option label="执行中" value="IN_PROGRESS" />
-            <el-option label="已完成" value="COMPLETED" />
-            <el-option label="已延期" value="DELAYED" />
+            <el-option label="待执行" :value="0" />
+            <el-option label="执行中" :value="1" />
+            <el-option label="已完成" :value="2" />
+            <el-option label="已延期" :value="3" />
           </el-select>
         </el-form-item>
         <el-form-item label="设备名称">
@@ -62,16 +62,16 @@
         </el-table-column>
         <el-table-column label="结果" width="80" align="center">
           <template slot-scope="{ row }">
-            <el-tag v-if="row.result" :type="row.result==='NORMAL'?'success':'danger'" size="small">
-              {{ row.result==='NORMAL' ? '正常' : '异常' }}
+            <el-tag v-if="row.result != null && row.result !== ''" :type="row.result===1?'success':'danger'" size="small">
+              {{ row.result===1 ? '正常' : '异常' }}
             </el-tag>
             <span v-else class="no-result">-</span>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
           <template slot-scope="{ row }">
-            <el-button v-if="row.status==='PENDING'" type="primary" size="mini" plain @click="startTask(row)">开始执行</el-button>
-            <el-button v-if="row.status==='IN_PROGRESS'" type="success" size="mini" plain @click="completeTask(row)">完成</el-button>
+            <el-button v-if="row.status===0" type="primary" size="mini" plain @click="startTask(row)">开始执行</el-button>
+            <el-button v-if="row.status===1" type="success" size="mini" plain @click="completeTask(row)">完成</el-button>
             <el-button type="danger" size="mini" plain @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -98,10 +98,10 @@
         </el-form-item>
         <el-form-item label="任务类型" prop="taskType">
           <el-select v-model="createForm.taskType" placeholder="请选择" style="width:100%">
-            <el-option label="日常巡检" value="DAILY" />
-            <el-option label="专项检查" value="SPECIAL" />
-            <el-option label="安全排查" value="SAFETY" />
-            <el-option label="质量检查" value="QUALITY" />
+            <el-option label="日常巡检" :value="1" />
+            <el-option label="专项检查" :value="2" />
+            <el-option label="安全排查" :value="3" />
+            <el-option label="质量检查" :value="4" />
           </el-select>
         </el-form-item>
         <el-form-item label="负责人" prop="assignee">
@@ -128,7 +128,7 @@ export default {
   data() {
     return {
       loading: false, submitting: false, total: 0,
-      queryParam: { taskType: '', status: '', equipmentName: '', pageNum: 1, pageSize: 10 },
+      queryParam: { taskType: null, status: null, equipmentName: '', pageNum: 1, pageSize: 10 },
       tableData: [],
       stats: [
         { label: '待执行', value: 0, color: '#1890ff' },
@@ -137,7 +137,7 @@ export default {
         { label: '已延期', value: 0, color: '#f5222d' }
       ],
       dialogVisible: false,
-      createForm: { equipmentName: '', equipmentCode: '', customerName: '', taskType: '', assignee: '', planDate: '' },
+      createForm: { equipmentName: '', equipmentCode: '', customerName: '', taskType: 1, assignee: '', planDate: '' },
       rules: {
         equipmentName: [{ required: true, message: '请输入设备名称', trigger: 'blur' }],
         equipmentCode: [{ required: true, message: '请输入设备编号', trigger: 'blur' }],
@@ -161,20 +161,20 @@ export default {
       try {
         const res = await request({ url: '/api/v1/inspection-tasks/stats', method: 'get' })
         if (res.code === 200 && res.data) {
-          this.stats[0].value = res.data.pending || 0
-          this.stats[1].value = res.data.inProgress || 0
-          this.stats[2].value = res.data.completed || 0
-          this.stats[3].value = res.data.delayed || 0
+          this.stats[0].value = res.data.pendingCount || 0
+          this.stats[1].value = res.data.inProgressCount || 0
+          this.stats[2].value = res.data.completedCount || 0
+          this.stats[3].value = res.data.delayedCount || 0
         }
       } catch {}
     },
     handleSearch() { this.queryParam.pageNum = 1; this.fetchData() },
     handleReset() {
-      this.queryParam = { taskType: '', status: '', equipmentName: '', pageNum: 1, pageSize: 10 }
+      this.queryParam = { taskType: null, status: null, equipmentName: '', pageNum: 1, pageSize: 10 }
       this.fetchData()
     },
     openCreateDialog() {
-      this.createForm = { equipmentName: '', equipmentCode: '', customerName: '', taskType: '', assignee: '', planDate: '' }
+      this.createForm = { equipmentName: '', equipmentCode: '', customerName: '', taskType: 1, assignee: '', planDate: '' }
       this.dialogVisible = true
       this.$nextTick(() => this.$refs.createForm?.clearValidate())
     },
@@ -209,10 +209,10 @@ export default {
         } catch { this.$message.error('删除失败') }
       }).catch(() => {})
     },
-    taskTypeTag(t) { return { DAILY: 'primary', SPECIAL: 'warning', SAFETY: 'danger', QUALITY: 'success' }[t] || 'info' },
-    taskTypeName(t) { return { DAILY: '日常巡检', SPECIAL: '专项检查', SAFETY: '安全排查', QUALITY: '质量检查' }[t] || t },
-    statusTag(s) { return { PENDING: 'info', IN_PROGRESS: 'warning', COMPLETED: 'success', DELAYED: 'danger' }[s] || 'info' },
-    statusName(s) { return { PENDING: '待执行', IN_PROGRESS: '执行中', COMPLETED: '已完成', DELAYED: '已延期' }[s] || s }
+    taskTypeTag(t) { return { 1: 'primary', 2: 'warning', 3: 'danger', 4: 'success' }[t] || 'info' },
+    taskTypeName(t) { return { 1: '日常巡检', 2: '专项检查', 3: '安全排查', 4: '质量检查' }[t] || t },
+    statusTag(s) { return { 0: 'info', 1: 'warning', 2: 'success', 3: 'danger' }[s] || 'info' },
+    statusName(s) { return { 0: '待执行', 1: '执行中', 2: '已完成', 3: '已延期' }[s] || s }
   }
 }
 </script>

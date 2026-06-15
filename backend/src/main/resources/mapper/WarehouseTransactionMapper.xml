@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sany.platform.mapper.WarehouseTransactionMapper">
+
+    <resultMap id="BaseResultMap" type="com.sany.platform.model.entity.WarehouseTransaction">
+        <id column="id" property="id" />
+        <result column="transaction_no" property="transactionNo" />
+        <result column="type" property="type" />
+        <result column="item_code" property="itemCode" />
+        <result column="item_name" property="itemName" />
+        <result column="quantity" property="quantity" />
+        <result column="operator" property="operator" />
+        <result column="transaction_date" property="transactionDate" />
+        <result column="remark" property="remark" />
+    </resultMap>
+
+    <sql id="BaseColumns">
+        id, transaction_no, type, item_code, item_name, quantity,
+        operator, transaction_date, remark
+    </sql>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="BaseColumns" /> FROM tbl_warehouse_transaction
+        <where>
+            1 = 1
+            <if test="type != null">
+                AND type = #{type}
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name LIKE CONCAT('%', #{itemName}, '%')
+            </if>
+        </where>
+        ORDER BY transaction_date DESC
+    </select>
+
+    <select id="countList" resultType="long">
+        SELECT COUNT(1) FROM tbl_warehouse_transaction
+        <where>
+            1 = 1
+            <if test="type != null">
+                AND type = #{type}
+            </if>
+            <if test="itemName != null and itemName != ''">
+                AND item_name LIKE CONCAT('%', #{itemName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_warehouse_transaction (
+            transaction_no, type, item_code, item_name, quantity,
+            operator, transaction_date, remark
+        ) VALUES (
+            #{transactionNo}, #{type}, #{itemCode}, #{itemName}, #{quantity},
+            #{operator}, #{transactionDate}, #{remark}
+        )
+    </insert>
+
+    <select id="selectMaxTransactionNoByDate" resultType="string">
+        SELECT transaction_no FROM tbl_warehouse_transaction
+        WHERE transaction_no LIKE CONCAT(#{datePrefix}, '%')
+        ORDER BY transaction_no DESC LIMIT 1
+    </select>
+</mapper>
